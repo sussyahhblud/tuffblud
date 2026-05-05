@@ -1,95 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="HandheldFriendly" content="true" />
 
-<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black" />
-<meta name="HandheldFriendly" content="true" />
+    <title>FNAF 2 - HTML5</title>
 
-<title>Clickteam Fusion HTML5 Runtime</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-<style>
-html, body {
-    height: 100%;
-    margin: 0;
-    background: #eee;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        #canvasWrapper {
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background: #000;
+        }
 
-#canvasWrapper {
-    display: inline-block;
-    -webkit-user-select: none;
-    text-align: left;
-    box-shadow: 0px 0px 8px rgba(0,0,0,0.3);
-}
+        canvas {
+            display: block;
+            max-width: 100vw;
+            max-height: 100vh;
+            image-rendering: pixelated; /* Keeps the game looking sharp */
+        }
+    </style>
 
-canvas {
-    width: 1280px;
-    height: 720px;
-}
-</style>
+    <script>
+        /* 1. Improved Image CORS patch */
+        const OriginalImage = window.Image;
+        window.Image = function() {
+            const img = new OriginalImage();
+            img.crossOrigin = "anonymous"; 
+            return img;
+        };
 
-<script>
-/* -----------------------------
-   Your XHR blocking patch
------------------------------- */
-const origOpen = XMLHttpRequest.prototype.open;
-XMLHttpRequest.prototype.open = function(method, url, ...args) {
-    if (url && url.includes('FNAF1.cc2')) {
-        this._block = true;
-    }
-    return origOpen.call(this, method, url, ...args);
-};
+        /* 2. XHR Patch for specific resource handling */
+        const origOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function(method, url, ...args) {
+            // Ensure we aren't accidentally blocking the actual .cch file
+            if (url && url.includes('FNAF2.cc2')) {
+                this._block = true;
+            }
+            return origOpen.call(this, method, url, ...args);
+        };
 
-const origSend = XMLHttpRequest.prototype.send;
-XMLHttpRequest.prototype.send = function(...args) {
-    if (this._block) {
-        setTimeout(() => {
-            Object.defineProperty(this, 'status', {value: 404});
-            Object.defineProperty(this, 'readyState', {value: 4});
-            this.dispatchEvent(new Event('load'));
-        }, 0);
-        return;
-    }
-    return origSend.call(this, ...args);
-};
+        const origSend = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.send = function(...args) {
+            if (this._block) {
+                setTimeout(() => {
+                    Object.defineProperty(this, 'status', { value: 404 });
+                    Object.defineProperty(this, 'readyState', { value: 4 });
+                    this.dispatchEvent(new Event('load'));
+                    this.dispatchEvent(new Event('readystatechange'));
+                }, 1);
+                return;
+            }
+            return origSend.call(this, ...args);
+        };
+    </script>
 
-/* -----------------------------
-   Image crossOrigin patch
------------------------------- */
-const origImage = window.Image;
-window.Image = function(...args) {
-    const img = new origImage(...args);
-    img.crossOrigin = "anonymous";
-    return img;
-};
-</script>
+    <!-- Runtime Logic -->
+    <script src="https://cdn.jsdelivr.net/gh/sussyahhblud/tuffblud@main/FNAF/FNAF2/src/Runtime.js"></script>
 
-<script src="https://cdn.jsdelivr.net/gh/sussyahhblud/tuffblud@main/FNAF/FNAF1/src/Runtime.js"></script>
-
-<script>
-window.addEventListener("load", () => {
-    new Runtime(
-        "MMFCanvas",
-        "https://cdn.jsdelivr.net/gh/sussyahhblud/tuffblud@main/FNAF/FNAF1/resources/FNAF1.cch"
-    );
-});
-</script>
-
+    <script>
+        window.addEventListener("load", () => {
+            // Ensure the canvas exists before calling Runtime
+            const canvas = document.getElementById("MMFCanvas");
+            if (canvas) {
+                new Runtime(
+                    "MMFCanvas",
+                    "https://cdn.jsdelivr.net/gh/sussyahhblud/tuffblud@main/FNAF/FNAF2/resources/FNAF2.cch"
+                );
+            }
+        });
+    </script>
 </head>
-
 <body>
 
-<div id="canvasWrapper">
-    <canvas id="MMFCanvas" width="1280" height="720">
-        Your browser does not support Canvas.
-    </canvas>
-</div>
+    <div id="canvasWrapper">
+        <canvas id="MMFCanvas" width="1280" height="720">
+            Your browser does not support Canvas.
+        </canvas>
+    </div>
 
 </body>
 </html>
