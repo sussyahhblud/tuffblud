@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<style type="text/css">
+  h1 {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #F00;
+    font-size: x-large;
+  }
+  p {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #000;
+    font-size: small;
+  }
+  body, html {
+    background-color: #000;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  #bloctxt {
+    border-left-width: 5px;
+    border-left-style: solid;
+    border-left-color: #F00;
+    padding-left: 10px;
+    position: absolute;
+    left: 50%%;
+    width: 600px;
+    margin-left: -260px
+  }
+  /* Center the canvas wrapper */
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="HandheldFriendly" content="true" />
+
+  <title>Five Nights at Freddy's</title>
+
+  <script>
+    if (!document.createElement("canvas").getContext) {
+      window.open("http://www.clickteam.com/html5-fallback", "_self");
+    }
+  </script>
+
+  <!-- Loads the Javascript code -->
+  <script src="https://cdn.jsdelivr.net/gh/sussyahhblud/tuffblud/FNAF/FNAF1NEW/src/Runtime.js"></script>
+
+    /* 
+     * Patch: Override the Runtime's Sm() resize method on the prototype
+     * so it ALWAYS scales to fill the window, not just when fullScreen is set.
+     * We do this after Runtime.js loads but before new Runtime() is called.
+     */
+    (function() {
+      // Find the Runtime prototype — it's the object with an Sm function
+      // We scan all global constructors that have Sm on their prototype
+      function patchRuntime() {
+        // Walk all properties on window to find the Runtime class
+        for (var key in window) {
+          try {
+            var obj = window[key];
+            if (typeof obj === 'function' && obj.prototype && typeof obj.prototype.Sm === 'function') {
+              var origSm = obj.prototype.Sm;
+              obj.prototype.Sm = function() {
+                // Temporarily force fullScreen so the scaling branch always runs
+                var wasFull = this.fullScreen;
+                this.fullScreen = true;
+                origSm.call(this);
+                this.fullScreen = wasFull;
+              };
+              console.log('Patched Sm() on', key);
+              break;
+            }
+          } catch(e) {}
+        }
+      }
+
+      // Also patch via the known minified name directly on the prototype
+      // The Runtime constructor is 'n' internally, exposed as window.Runtime
+      var _OrigRuntime = window.Runtime;
+      if (typeof _OrigRuntime === 'function') {
+        var origSm = _OrigRuntime.prototype.Sm;
+        if (typeof origSm === 'function') {
+          _OrigRuntime.prototype.Sm = function() {
+            var wasFull = this.fullScreen;
+            this.fullScreen = true;
+            origSm.call(this);
+            this.fullScreen = wasFull;
+          };
+          console.log('Patched Runtime.prototype.Sm directly');
+        } else {
+          // Sm might not be directly on Runtime.prototype, scan instead
+          patchRuntime();
+        }
+      } else {
+        patchRuntime();
+      }
+
+      // Also listen for window resize to keep it filling the screen
+      window.addEventListener('resize', function() {
+        var canvas = document.getElementById('MMFCanvas');
+        if (canvas && canvas.Tb && typeof canvas.Tb.Sm === 'function') {
+          var tb = canvas.Tb;
+          var wasFull = tb.fullScreen;
+          tb.fullScreen = true;
+          tb.Sm();
+          tb.fullScreen = wasFull;
+        }
+      });
+    })();
+  </script>
+</head>
+
+<body>
+<div style="display: inline-block; -webkit-user-select: none; text-align: left;">
+    <canvas id="MMFCanvas" width="960" height="540">
+      Your browser does not support Canvas.
+    </canvas>
+</div>
+
+<script>
+    window.addEventListener("load", windowLoaded, false);
+    function windowLoaded() {
+        new Runtime("MMFCanvas", "https://cdn.jsdelivr.net/gh/sussyahhblud/tuffblud/FNAF/FNAF1NEW/resources/FNAF1NEW.cch");
+    }
+</script>
+
+</body>
+</html>
